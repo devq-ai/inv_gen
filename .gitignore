@@ -61,6 +61,9 @@ htmlcov/
 temp/
 tmp/
 
+# Archive (refactored code)
+archive/
+
 # OS
 Thumbs.db
 .DS_Store

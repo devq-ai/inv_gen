@@ -1,429 +1,469 @@
-# 📧 DevQ.ai Invoice Management System
+# Invoice Management System
 
-**Complete invoice generation, management, and email delivery system**
+A streamlined invoice generation and email delivery system for weekly contractor invoicing to InfoObjects.
 
----
+## Quick Start
 
-## 🎯 Critical Feature: Email Delivery
-
-**EMAIL IS THE MOST IMPORTANT FEATURE** - Without email delivery, invoices cannot reach InfoObjects for payment processing.
-
-### Email Flow:
-1. **Generate Invoice** → Sends approval email to `dion@devq.ai` with PDF
-2. **Approve Invoice** → Sends to InfoObjects with CC to `dion@devq.ai` for verification
-3. **PDF Attached** → Every email includes the invoice PDF attachment
-
----
-
-## 🚀 Quick Start
-
-### 1. Configure Email (Required!)
-
-```nu
-# Create .env file with Gmail App Password
-cat > .env << 'EOF'
-GMAIL_ADDRESS=dion@devq.ai
-GMAIL_APP_PASSWORD=your_16_char_app_password_here
-EOF
-```
-
-**Get Gmail App Password:** https://myaccount.google.com/apppasswords
-
-### 2. Install Dependencies
-
-```nu
-pip install -r requirements.txt
-```
-
-### 3. Start Email Server
-
-```nu
-./start_server.nu
-```
-
-### 4. Test Email System
-
-```nu
-# In another terminal
-./test_email.nu
-```
-
----
-
-## 📦 System Components
-
-### 1. **FastAPI Server** (Email Enabled)
-```nu
-./start_server.nu
-```
-- **Port:** 8000
-- **Email:** Sends invoices via Gmail SMTP
-- **API Docs:** http://localhost:8000/docs
-- **Critical:** Handles email delivery with PDF attachments
-
-### 2. **Python CLI** (Local Management)
-```nu
-python3 invoice_cli.py list              # View all invoices
-python3 invoice_cli.py show N001         # Invoice details
-python3 invoice_cli.py generate N001     # Generate PDF
-python3 invoice_cli.py submit N001       # Mark as submitted
-python3 invoice_cli.py paid N001         # Mark as paid
-python3 invoice_cli.py stats             # Financial statistics
-```
-
-### 3. **Go TUI** (Terminal Interface)
-```nu
-cd tui && ./bin/invoice-tui
-```
-- Dashboard with financial overview
-- Invoice list with filtering
-- PDF generation
-- Status updates
-- **Note:** TUI does NOT send emails (use FastAPI for emails)
-
----
-
-## 📧 Email System (The Critical Part)
-
-### How It Works:
-
-#### Step 1: Generate & Send for Approval
-```nu
-http post http://localhost:8000/invoice/generate
-```
-
-**Email Sent:**
-- **TO:** dion@devq.ai
-- **CC:** dion@devq.ai (verification)
-- **Subject:** "Invoice N001 - Pending Approval"
-- **Attachment:** invoice_N001.pdf
-
-#### Step 2: Approve & Send to InfoObjects
-```nu
-http post http://localhost:8000/invoice/approve/N001
-```
-
-**Email Sent:**
-- **TO:** infoobjects@bill.com, timesheets@infoobjects.com
-- **CC:** dion@devq.ai (verification)
-- **Subject:** "Weekly Invoice N001 - Dion Edge"
-- **Attachment:** invoice_N001.pdf
-
-### Email Verification Checklist:
-- [ ] Approval email received at dion@devq.ai
-- [ ] PDF attached to approval email
-- [ ] InfoObjects email sent to both addresses
-- [ ] CC copy received at dion@devq.ai
-- [ ] PDF attached to InfoObjects email
-- [ ] Professional email formatting
-
----
-
-## 📊 Database
-
-### Quick Stats (Nu Shell)
-```nu
-sqlite3 invoices.db "
-SELECT 
-  CASE 
-    WHEN paid = 1 THEN 'Paid'
-    WHEN submitted = 1 THEN 'Submitted'
-    ELSE 'Pending'
-  END as status,
-  COUNT(*) as count,
-  printf('$%.2f', SUM(line_total)) as total
-FROM invoices 
-GROUP BY status
-" | from csv
-```
-
-### Current State:
-- **Total Invoices:** 27
-- **Date Range:** Oct 2025 - Apr 2026
-- **Weekly Rate:** $3,200 (40 hours × $80/hour)
-- **Total Value:** $86,400
-
----
-
-## 🧪 Testing
-
-### Complete Workflow Test
-```nu
-./test_complete_workflow.nu
-```
-
-Tests entire lifecycle:
-1. Generate PDF
-2. Send approval email
-3. Update database
-4. Send to InfoObjects
-5. Verify all steps
-
-### Quick Email Test
-```nu
-./test_email.nu
-```
-
-Tests email delivery:
-1. Generate invoice
-2. Send approval email
-3. Approve invoice
-4. Send to InfoObjects
-5. Check both emails sent
-
----
-
-## 📁 Project Structure
-
-```
-inv_gen/
-├── .env                          # Email credentials (REQUIRED)
-├── .env.example                  # Template
-├── invoices.db                   # SQLite database (27 invoices)
-├── main.py                       # FastAPI server (EMAIL ENABLED)
-├── invoice_cli.py                # Python CLI
-├── db_invoice_generator.py       # PDF generator
-├── email_service.py              # Email delivery (CRITICAL)
-├── requirements.txt              # Python dependencies
-│
-├── invoices/                     # Generated PDFs
-│   └── invoice_N*.pdf           # 27 invoice PDFs
-│
-├── tui/                          # Go TUI
-│   ├── main.go
-│   ├── models/
-│   ├── views/
-│   └── bin/invoice-tui          # Compiled binary
-│
-└── Nu Shell Scripts:
-    ├── start_server.nu           # Start FastAPI
-    ├── test_email.nu             # Test email system
-    └── test_complete_workflow.nu # Full test
-```
-
----
-
-## 🔑 Email Configuration
-
-### Gmail App Password Setup:
-
-1. Go to https://myaccount.google.com/apppasswords
-2. Select "Mail" and device type
-3. Copy the 16-character password
-4. Add to `.env`:
-   ```
-   GMAIL_APP_PASSWORD=abcd efgh ijkl mnop
-   ```
-   (spaces will be removed automatically)
-
-### Security:
-- ✅ `.env` is in `.gitignore`
-- ✅ Never commit credentials
-- ✅ Use app passwords, not main password
-- ✅ TLS encryption for SMTP
-
----
-
-## 📚 Documentation
-
-- **[EMAIL_TESTING_GUIDE.md](EMAIL_TESTING_GUIDE.md)** - Complete email testing guide
-- **[NU_COMMANDS.md](NU_COMMANDS.md)** - Nu shell command reference
-- **[GMAIL_SETUP.md](GMAIL_SETUP.md)** - Email configuration
-- **[DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md)** - Database schema
-- **[TUI_SPECIFICATION.md](TUI_SPECIFICATION.md)** - TUI design
-
----
-
-## 🎯 Common Workflows
-
-### Weekly Invoice (Production)
-```nu
-# Monday morning
-cd ~/devqai/inv_gen
-./start_server.nu
-
-# In another terminal
-cd ~/devqai/inv_gen
-
-# Generate invoice for last week
-http post http://localhost:8000/invoice/generate
-
-# Check email, review PDF
-# Then approve and send
-http post http://localhost:8000/invoice/approve/N027
-
-# Verify CC email received at dion@devq.ai
-```
-
-### Check Invoice Status
-```nu
-python3 invoice_cli.py stats
-```
-
-### Generate Missing PDFs
-```nu
-python3 invoice_cli.py generate N001
-```
-
-### View in TUI
-```nu
-cd tui && ./bin/invoice-tui
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Email Not Sending?
-```nu
-# Check .env exists
-ls .env
-
-# Verify credentials loaded
-cat .env | grep GMAIL
-
-# Test server
-http get http://localhost:8000/health
-```
-
-### Server Won't Start?
-```nu
-# Check if port 8000 is in use
-lsof -i :8000
-
-# Kill existing process
-kill -9 (lsof -ti:8000)
-
-# Start fresh
-./start_server.nu
-```
-
-### Database Issues?
-```nu
-# Check database
-sqlite3 invoices.db "SELECT COUNT(*) FROM invoices"
-
-# Recreate if needed
-python3 create_invoice_db.py
-```
-
----
-
-## 🎨 Features
-
-### Email System:
-- ✅ Gmail SMTP integration
-- ✅ PDF attachments
-- ✅ Professional HTML formatting
-- ✅ CC for verification
-- ✅ Approval workflow
-- ✅ Error handling
-
-### Python CLI:
-- ✅ List all invoices
-- ✅ Show details
-- ✅ Generate PDFs
-- ✅ Update status
-- ✅ Financial statistics
-
-### Go TUI:
-- ✅ Beautiful dashboard
-- ✅ Invoice filtering
-- ✅ PDF generation
-- ✅ Status updates
-- ✅ Neon color scheme
-
-### Database:
-- ✅ SQLite (portable)
-- ✅ 27 pre-populated invoices
-- ✅ Time tracking per day
-- ✅ Status tracking
-
----
-
-## 🔐 Environment Variables
-
-Required in `.env`:
+### Installation
 ```bash
-# Email (REQUIRED for sending invoices)
-GMAIL_ADDRESS=dion@devq.ai
-GMAIL_APP_PASSWORD=your_app_password
+# Install Python dependencies
+pip install -r requirements.txt
 
-# Optional overrides
-BILLING_EMAIL=infoobjects@bill.com
-TIMESHEET_EMAIL=timesheets@infoobjects.com
-HOURLY_RATE=80.0
-PAYMENT_TERMS=Net 15
+# Build Go TUI (optional)
+cd tui && make build
 ```
 
----
+### Configure Email
+```bash
+# Create .env file
+cp .env.example .env
 
-## 📈 Statistics
-
-### Current System State:
-- **Total Invoices:** 27
-- **Total Value:** $86,400
-- **Average per Invoice:** $3,200
-- **Hours per Week:** 40
-- **Hourly Rate:** $80
-- **Payment Terms:** Net 15
-
----
-
-## ✨ Success Criteria
-
-An invoice is successfully processed when:
-
-1. ✅ PDF generated correctly
-2. ✅ Approval email sent to dion@devq.ai
-3. ✅ PDF attached to approval email
-4. ✅ Approval confirmed
-5. ✅ Invoice sent to InfoObjects (both emails)
-6. ✅ CC copy received at dion@devq.ai
-7. ✅ PDF attached to InfoObjects email
-8. ✅ Database updated to "submitted"
-9. ✅ Payment received (eventually)
-10. ✅ Database updated to "paid"
-
-**Without email delivery (steps 2-7), the invoice system is incomplete!**
-
----
-
-## 🆘 Support
-
-### Check Logs:
-```nu
-# FastAPI logs
-tail -f /tmp/fastapi.log
-
-# Or run with verbose output
-python3 main.py
+# Add your Gmail app password
+# Get it from: https://myaccount.google.com/apppasswords
+GMAIL_ADDRESS=your-email@gmail.com
+GMAIL_APP_PASSWORD=your_16_char_app_password
 ```
 
-### Test Components:
-```nu
-# Test database
+### Run
+```bash
+# Python CLI
 python3 invoice_cli.py list
 
-# Test API
-http get http://localhost:8000/health
-
-# Test TUI
+# Go TUI
 cd tui && ./bin/invoice-tui
-
-# Test email
-./test_email.nu
 ```
 
----
+## System Components
 
-## 📞 Contact
+### 1. Python CLI (`invoice_cli.py`)
+Command-line interface for invoice management.
+
+**Commands:**
+```bash
+python3 invoice_cli.py list                    # List all invoices
+python3 invoice_cli.py show N001               # Show invoice details
+python3 invoice_cli.py generate N001           # Generate PDF
+python3 invoice_cli.py submit N001             # Mark as submitted
+python3 invoice_cli.py paid N001               # Mark as paid
+python3 invoice_cli.py stats                   # Show statistics
+```
+
+### 2. Go TUI (`tui/`)
+Terminal user interface with native email support.
+
+**Features:**
+- Dashboard with financial overview
+- Invoice list with filtering (all/pending/submitted/paid)
+- PDF generation
+- Email delivery via native Go SMTP
+- Status tracking
+
+**Keyboard Shortcuts:**
+- `↑/↓` - Navigate
+- `Enter` - Select
+- `f` - Cycle filters (List view)
+- `g` - Generate PDF
+- `s` - Send email & mark submitted
+- `p` - Mark as paid
+- `q` - Quit/Back
+- `Esc` - Back to dashboard
+
+### 3. Email Service (`email_service.py`)
+SMTP email delivery with PDF attachments.
+
+**Recipients:**
+- **TO:** InfoObjects billing/timesheet emails
+- **CC:** dion@wrench.chat (for verification)
+
+### 4. Cron Automation (`cron_weekly_invoice.py`)
+Automated weekly invoice generation and email delivery.
+
+**Schedule:** Every Saturday at 2:00 AM CST
+
+**Cron Entry:**
+```cron
+0 2 * * 6 cd /path/to/inv_gen && /usr/bin/python3 cron_weekly_invoice.py
+```
+
+## Database
+
+**Location:** `invoices.db` (SQLite)
+**Current State:** 27 invoices from Oct 2025 - Apr 2026
+
+**Schema:**
+```sql
+CREATE TABLE invoices (
+    invoice_number TEXT PRIMARY KEY,
+    invoice_create_date TEXT,
+    due_date TEXT,
+    work_week_start TEXT,
+    work_week_end TEXT,
+    line_total REAL,
+    submitted INTEGER DEFAULT 0,
+    paid INTEGER DEFAULT 0,
+    -- Daily hours: monday_hours through sunday_hours
+    -- Each day: REAL DEFAULT 8.0
+);
+```
+
+**Quick Stats:**
+```bash
+# View statistics
+python3 invoice_cli.py stats
+
+# Or via SQL
+sqlite3 invoices.db "SELECT 
+  COUNT(*) as total,
+  SUM(CASE WHEN paid = 1 THEN 1 ELSE 0 END) as paid,
+  SUM(CASE WHEN submitted = 1 AND paid = 0 THEN 1 ELSE 0 END) as submitted,
+  SUM(CASE WHEN submitted = 0 AND paid = 0 THEN 1 ELSE 0 END) as pending,
+  printf('$%.2f', SUM(line_total)) as total_value
+FROM invoices;"
+```
+
+## Email Configuration
+
+### Gmail Setup
+
+1. **Enable 2FA** on your Google account
+2. **Create App Password:**
+   - Visit: https://myaccount.google.com/apppasswords
+   - Select: Mail > Other (Custom name)
+   - Copy the 16-character password
+3. **Update .env:**
+   ```bash
+   GMAIL_ADDRESS=your-email@gmail.com
+   GMAIL_APP_PASSWORD=abcdefghijklmnop
+   ```
+
+### Email Flow
+
+1. **Generate Invoice** → Creates PDF in `invoices/` directory
+2. **Send Email** (TUI: press `s` or Cron: automated)
+   - Attaches PDF
+   - Sends to InfoObjects
+   - CCs you for verification
+   - Marks invoice as submitted in database
+
+### Test Email
+```bash
+# Test email configuration
+python3 -c "from email_service import send_invoice; \
+    send_invoice('N001', 'test@example.com')"
+```
+
+## Cron Setup
+
+### Install Cron Job
+```bash
+# Edit crontab
+crontab -e
+
+# Add this line (adjust path):
+0 2 * * 6 cd /Users/yourname/devqai/inv_gen && /usr/bin/python3 cron_weekly_invoice.py >> logs/cron.log 2>&1
+```
+
+### Verify Cron
+```bash
+# List active cron jobs
+crontab -l
+
+# Check logs
+tail -f logs/cron.log
+
+# Test manually
+python3 cron_weekly_invoice.py
+```
+
+### What the Cron Job Does
+1. Finds next pending invoice
+2. Generates PDF
+3. Sends email with PDF attached
+4. Marks invoice as submitted
+5. Logs results
+
+## Development
+
+### Code Analysis
+```bash
+# Count lines by file type
+./count_code.nu
+
+# Analyze codebase
+./analyze_codebase.nu
+```
+
+### File Structure
+```
+inv_gen/
+├── invoice_cli.py           # Python CLI (368 lines)
+├── email_service.py         # Email functionality (227 lines)
+├── cron_weekly_invoice.py   # Automation (178 lines)
+├── invoices.db              # SQLite database
+├── requirements.txt         # Python dependencies
+│
+├── tui/                     # Go TUI (2,230 lines)
+│   ├── main.go              # Main application
+│   ├── email.go             # Native Go SMTP
+│   ├── models/              # Data models
+│   ├── views/               # UI views
+│   └── styles/              # Color theme
+│
+├── invoices/                # Generated PDFs
+├── logs/                    # Log files
+│
+├── analyze_codebase.nu      # Code analysis tool
+├── count_code.nu            # Line counter
+└── run.sh                   # Quick start script
+```
+
+### Building TUI
+```bash
+cd tui
+make build    # Build binary
+make install  # Install to bin/
+make clean    # Clean build artifacts
+```
+
+## Troubleshooting
+
+### Email Not Sending
+
+**Check Gmail credentials:**
+```bash
+# Verify .env exists
+cat .env | grep GMAIL
+
+# Test SMTP connection
+python3 -c "import smtplib; \
+    smtp = smtplib.SMTP('smtp.gmail.com', 587); \
+    smtp.starttls(); \
+    print('SMTP connection successful')"
+```
+
+**Common issues:**
+- App password not enabled (requires 2FA)
+- Incorrect app password (no spaces, 16 chars)
+- Gmail blocking "less secure apps" (use app password)
+
+### PDF Not Generating
+
+**Check WeasyPrint:**
+```bash
+# Test PDF generation
+python3 invoice_cli.py generate N001
+
+# Check output
+ls -lh invoices/invoice_N001.pdf
+```
+
+**Common issues:**
+- Missing WeasyPrint dependencies
+- Template file not found
+- Database connection failed
+
+### Database Issues
+
+**Check database:**
+```bash
+# Verify database exists
+ls -lh invoices.db
+
+# Check invoice count
+sqlite3 invoices.db "SELECT COUNT(*) FROM invoices;"
+
+# View schema
+sqlite3 invoices.db ".schema invoices"
+```
+
+### TUI Not Starting
+
+**Check binary:**
+```bash
+# Verify binary exists
+ls -lh tui/bin/invoice-tui
+
+# Check database path
+cd tui && ./bin/invoice-tui ../invoices.db
+
+# Build from source
+cd tui && make clean && make build
+```
+
+## Configuration
+
+### Environment Variables (.env)
+
+```bash
+# Required
+GMAIL_ADDRESS=your-email@gmail.com
+GMAIL_APP_PASSWORD=your_app_password
+
+# Invoice Details
+CONTRACTOR_NAME="Dion Edge"
+CONTRACTOR_ADDRESS="123 Main St"
+CONTRACTOR_CITY="Pinehurst"
+CONTRACTOR_STATE="NC"
+CONTRACTOR_ZIP="28374"
+CONTRACTOR_PHONE="910-988-2000"
+
+# Client Details
+CLIENT_NAME="Info Objects, Inc."
+CLIENT_ADDRESS="2033 Gateway Pl"
+CLIENT_CITY="San Jose"
+CLIENT_STATE="CA"
+CLIENT_ZIP="95110"
+
+# Email Recipients
+BILLING_EMAIL=infoobjects@bill.com
+TIMESHEET_EMAIL=timesheets@infoobjects.com
+CC_EMAIL=dion@wrench.chat
+
+# Invoice Settings
+HOURLY_RATE=80.0
+PAYMENT_TERMS="Net 15"
+```
+
+## Testing
+
+### Manual Test Workflow
+```bash
+# 1. Generate PDF
+python3 invoice_cli.py generate N001
+
+# 2. Verify PDF created
+ls -lh invoices/invoice_N001.pdf
+
+# 3. Test email (won't actually send)
+python3 invoice_cli.py submit N001
+
+# 4. Check database updated
+python3 invoice_cli.py show N001
+
+# 5. Mark as paid
+python3 invoice_cli.py paid N001
+```
+
+### TUI Test
+```bash
+cd tui
+./bin/invoice-tui
+
+# Test workflow:
+# 1. Navigate to invoice list
+# 2. Press 'g' to generate PDF
+# 3. Press 's' to send email
+# 4. Press 'p' to mark paid
+# 5. Press 'q' to quit
+```
+
+### Cron Test
+```bash
+# Run cron script manually
+python3 cron_weekly_invoice.py
+
+# Check output
+cat logs/cron.log
+```
+
+## Performance
+
+**Current System:**
+- Total Lines: ~2,800 (refactored from 11,361)
+- Code Files: 10 active files
+- Database: 27 invoices, ~86KB
+- PDF Generation: ~2 seconds per invoice
+- Email Delivery: ~3 seconds per email
+
+## Invoice Details
+
+**Standard Invoice:**
+- Weekly timesheet (Monday-Sunday)
+- 40 hours per week (8 hours/day)
+- $80/hour rate
+- Total: $3,200 per invoice
+- Payment terms: Net 15
+
+**Invoice Numbering:**
+- Format: N### (N001, N002, etc.)
+- Sequential by week
+- Generated every Monday for previous week
+
+## Security
+
+**Best Practices:**
+- `.env` is gitignored (never committed)
+- App passwords instead of main password
+- TLS encryption for SMTP
+- Local SQLite database (not exposed)
+- PDF files gitignored
+
+## Backup
+
+**Cron Backup (Daily 2 AM):**
+```cron
+0 2 * * * cd /Users/yourname/devqai && tar -czf backups/inv_gen_$(date +\%Y\%m\%d).tar.gz inv_gen/
+```
+
+**Manual Backup:**
+```bash
+# Backup database
+cp invoices.db invoices.db.backup
+
+# Backup entire project
+tar -czf inv_gen_backup.tar.gz inv_gen/
+```
+
+## Statistics (Current)
+
+- **Total Invoices:** 27
+- **Date Range:** Oct 2025 - Apr 2026  
+- **Total Value:** $86,400
+- **Average Invoice:** $3,200
+- **Hourly Rate:** $80
+- **Hours/Week:** 40
+- **Payment Terms:** Net 15
+
+## Support
+
+**Logs:**
+```bash
+# Cron logs
+tail -f logs/cron.log
+
+# Email logs (if configured)
+tail -f logs/email.log
+```
+
+**Common Commands:**
+```bash
+# Check system status
+python3 invoice_cli.py stats
+
+# View next pending invoice
+sqlite3 invoices.db "SELECT * FROM invoices WHERE submitted=0 ORDER BY invoice_create_date LIMIT 1;"
+
+# Regenerate all PDFs
+for inv in $(sqlite3 invoices.db "SELECT invoice_number FROM invoices;"); do
+    python3 invoice_cli.py generate $inv
+done
+```
+
+## License
+
+MIT License - See LICENSE file for details
+
+## Contact
 
 **Developer:** Dion Edge  
 **Email:** dion@devq.ai  
 **Project:** DevQ.ai Invoice Management System  
-**Location:** ~/devqai/inv_gen
+**GitHub:** https://github.com/devq-ai/inv_gen
 
 ---
 
-**Remember: Email delivery is the MOST IMPORTANT feature!** 📧✅
+**Quick Reference:**
+- Generate: `python3 invoice_cli.py generate N###`
+- Send Email: TUI press `s` or Cron automated
+- View Stats: `python3 invoice_cli.py stats`
+- TUI: `cd tui && ./bin/invoice-tui`
