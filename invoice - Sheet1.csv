@@ -1,0 +1,26 @@
+Invoice,,,,,
+Date:,10/5/2025,,,,
+Invoice:,N1,,,,
+Payment Terms:,Net 15,,,,
+Due Date:,10/20/2025,,,,
+,,,,,
+Name:,Dion Edge,,,,
+Address:,"10705 Pinehurst Drive, Austin, TX 78747",,,,
+,,,,,
+TO:,"InfoObjects, Inc.",,,,
+," 2041 Mission College Blvd, Ste 280",,,,
+," Santa Clara, CA 95054",,,,
+, (408) 988-2000,,,,
+,,,,,
+,,,,,
+In,Out,Description,Hrs Worked,Unit Price,Line Total
+10:00 AM,6:00 PM,Mon 09/29/2025,8 Hours,[$80/hr],$640
+10:00 AM,6:00 PM,Tue 09/30/2025,8 Hours,[$80/hr],$640
+10:00 AM,6:00 PM,Wed 10/01/2025,8 Hours,[$80/hr],$640
+10:00 AM,6:00 PM,Thu 10/02/2025,8 Hours,[$80/hr],$640
+10:00 AM,6:00 PM,Fri 10/03/2025,8 Hours,[$80/hr],$640
+,,,40 Hours,Total,"$3,200"
+Instructions:,,,,,
+All timesheets need to be submitted weekly by Monday for the previous week.,,,,,
+Please save your timesheet as a PDF or send us a copy as an attachment to infoobjects@bill.com.,,,,,
+Generate this weekly invoice every Sunday and email the invoice as a PDF to timesheets@infoobjects.com,,,,,
